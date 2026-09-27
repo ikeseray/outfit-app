@@ -1,0 +1,33 @@
+const { chromium } = require('@playwright/test');
+const fs = require('node:fs');
+
+(async () => {
+  fs.mkdirSync('test-results/videos', { recursive: true });
+  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  const context = await browser.newContext({ viewport: { width: 390, height: 1000 }, recordVideo: { dir: 'test-results/videos', size: { width: 390, height: 1000 } } });
+  const page = await context.newPage();
+  await page.goto('http://localhost:8096/?outfit-preview=1');
+  await page.getByTestId('outfit-item-shirt').waitFor();
+  await page.waitForTimeout(700);
+  await page.getByTestId('outfit-item-shirt').click();
+  await page.waitForTimeout(1100);
+  await page.getByRole('button', { name: '换一件', exact: true }).click();
+  await page.waitForTimeout(1000);
+  await page.getByRole('button', { name: '换一件', exact: true }).click();
+  await page.waitForTimeout(900);
+  await page.getByRole('button', { name: '挑选单品', exact: true }).click();
+  await page.waitForTimeout(1100);
+  await page.screenshot({ path: 'test-results/glass-picker.png' });
+  await page.getByRole('button', { name: '换成浅粉短袖衬衫', exact: true }).click();
+  await page.waitForTimeout(900);
+  await page.getByTestId('outfit-item-trousers').click();
+  await page.waitForTimeout(1100);
+  await page.getByRole('button', { name: '换一件', exact: true }).click();
+  await page.waitForTimeout(1100);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(700);
+  await context.close();
+  await page.video().saveAs('test-results/outfit-glass-demo.webm');
+  await browser.close();
+  console.log('Recorded test-results/outfit-glass-demo.webm');
+})().catch(error => { console.error(error); process.exit(1); });
